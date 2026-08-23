@@ -13,6 +13,40 @@ const STAGES = [
   { key: "critic", label: "Critic", role: "Reviews the draft" },
 ];
 
+// Helper function to convert URLs in text to clickable links
+function renderTextWithLinks(text) {
+  if (!text) return text;
+  
+  // Regex to match URLs
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  
+  return parts.map((part, index) => {
+    if (urlRegex.test(part)) {
+      return React.createElement("a", {
+        key: index,
+        href: part,
+        target: "_blank",
+        rel: "noopener noreferrer",
+        style: { color: "#00d9ff", textDecoration: "underline", cursor: "pointer" }
+      }, part);
+    }
+    return part;
+  });
+}
+
+// Helper function to download report
+function downloadReport(report, topic) {
+  const filename = `research-report-${topic.replace(/\s+/g, "-").toLowerCase()}.txt`;
+  const element = document.createElement("a");
+  element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(report));
+  element.setAttribute("download", filename);
+  element.style.display = "none";
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
+
 function StageStatusText({ status }) {
   if (status === "active") return "transmitting…";
   if (status === "done") return "received";
@@ -43,7 +77,7 @@ function Timeline({ stageState }) {
   );
 }
 
-function ReportTab({ report }) {
+function ReportTab({ report, topic }) {
   if (!report) {
     return (
       <div className="empty-state">
@@ -54,8 +88,34 @@ function ReportTab({ report }) {
   }
   return (
     <div>
-      <div className="section-label">Final Report</div>
-      <div className="report-view">{report}</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+        <div className="section-label">Final Report</div>
+        <button 
+          onClick={() => downloadReport(report, topic)}
+          style={{
+            padding: "8px 16px",
+            backgroundColor: "#00d9ff",
+            color: "#0a0e27",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontWeight: "600",
+            fontSize: "12px",
+            transition: "all 0.2s"
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = "#00b8cc";
+            e.target.style.transform = "scale(1.05)";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = "#00d9ff";
+            e.target.style.transform = "scale(1)";
+          }}
+        >
+          ⬇ Download Report
+        </button>
+      </div>
+      <div className="report-view">{renderTextWithLinks(report)}</div>
     </div>
   );
 }
@@ -74,13 +134,13 @@ function SourcesTab({ searchResult, scrapedResult }) {
       {searchResult && (
         <>
           <div className="section-label">Search Results</div>
-          <div className="raw-view" style={{ marginBottom: 28 }}>{searchResult}</div>
+          <div className="raw-view" style={{ marginBottom: 28 }}>{renderTextWithLinks(searchResult)}</div>
         </>
       )}
       {scrapedResult && (
         <>
           <div className="section-label">Scraped Source</div>
-          <div className="raw-view">{scrapedResult}</div>
+          <div className="raw-view">{renderTextWithLinks(scrapedResult)}</div>
         </>
       )}
     </div>
@@ -99,7 +159,7 @@ function CritiqueTab({ feedback }) {
   return (
     <div>
       <div className="section-label">Critic Feedback</div>
-      <div className="critique-view">{feedback}</div>
+      <div className="critique-view">{renderTextWithLinks(feedback)}</div>
     </div>
   );
 }
@@ -237,7 +297,7 @@ function App() {
 
           <div className="tab-body">
             {error && <div className="error-banner">⚠ {error}</div>}
-            {!error && activeTab === "report" && <ReportTab report={result.report} />}
+            {!error && activeTab === "report" && <ReportTab report={result.report} topic={topic} />}
             {!error && activeTab === "sources" && (
               <SourcesTab searchResult={result.search_result} scrapedResult={result.scraped_result} />
             )}
