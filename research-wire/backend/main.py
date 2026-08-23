@@ -5,15 +5,22 @@ Wraps the same building blocks used in pipeline.py (build_search_agent,
 build_reader_agent, writer_chain, critic_chain) but:
   1. Exposes a simple REST endpoint (/api/research) for a plain
      request/response call.
-  2. Exposes a WebSocket endpoint (/ws/research) that streams progress
-     events as each agent finishes its stage, so the UI can show a live
-     timeline instead of a blank spinner for the whole run.
+  2. Exposes a Server-Sent Events endpoint (/api/research/stream) that
+     streams progress events as each agent finishes its stage, so the UI
+     can show a live timeline instead of a blank spinner for the whole run.
+  3. Exposes a WebSocket endpoint (/ws/research) for local/non-serverless
+     deployments. NOTE: this will NOT work on Vercel — serverless functions
+     there are request/response only, no persistent connections. Use the
+     SSE endpoint instead when deployed on Vercel (the frontend already
+     does this, see frontend/app.jsx).
 
-Run with:
-    uvicorn main:app --reload --port 8000
+Run locally with (from the PROJECT ROOT, not inside backend/):
+    uvicorn backend.main:app --reload --port 8000
 
-Make sure this file sits next to agents.py / tools.py / pipeline.py
-(or adjust the import path below).
+This is a package-relative import (see the `.agents` import below), which
+is what lets this exact same app object be imported as `backend.main:app`
+both locally and by api/index.py on Vercel, without the import path
+depending on which directory the process happens to be started from.
 """
 
 import asyncio
@@ -28,7 +35,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from agents import build_search_agent, build_reader_agent, critic_chain, writer_chain
+from .agents import build_search_agent, build_reader_agent, critic_chain, writer_chain
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("research-api")
@@ -125,15 +132,14 @@ async def research_endpoint(req: ResearchRequest):
 
 
 # ---------------------------------------------------------------------------
-# WebSocket endpoint (live progress)
+# SSE endpoint (live progress) — used on Vercel and anywhere else that
+# supports streaming HTTP responses but not persistent WebSockets.
 # ---------------------------------------------------------------------------
 
 @app.get("/api/research/stream")
 async def research_stream(topic: str):
     """
-    Server-Sent Events version of the pipeline, for platforms (like Vercel)
-    that support streaming HTTP responses but not persistent WebSockets.
-    Same event shape as the /ws/research WebSocket: {"type": "stage", ...}
+    Event shape matches the /ws/research WebSocket: {"type": "stage", ...}
     then a final {"type": "complete", "data": {...}} or {"type": "error", ...}.
     """
     topic = topic.strip()
@@ -216,6 +222,12 @@ async def research_stream(topic: str):
     )
 
 
+# ---------------------------------------------------------------------------
+# WebSocket endpoint — local / non-serverless deployments only.
+# Does NOT work on Vercel (see module docstring). Frontend uses the SSE
+# endpoint above instead.
+# ---------------------------------------------------------------------------
+
 @app.websocket("/ws/research")
 async def research_ws(websocket: WebSocket):
     await websocket.accept()
@@ -281,11 +293,11 @@ async def research_ws(websocket: WebSocket):
 
 
 # ---------------------------------------------------------------------------
-# Serve the frontend (single-deploy setup)
+# Serve the frontend for local single-process runs (e.g. `uvicorn main:app`
+# from backend/ with no separate static host). On Vercel, vercel.json's
+# rewrites serve frontend/ directly as static files instead, so this mount
+# mostly matters for local dev / non-Vercel single-deploy setups.
 # ---------------------------------------------------------------------------
-# Expects backend/main.py and frontend/ to be siblings under the project
-# root. This mount is registered LAST so it doesn't shadow the /api and /ws
-# routes above — FastAPI matches routes in the order they're added.
 _frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
 if _frontend_dir.exists():
     app.mount("/", StaticFiles(directory=str(_frontend_dir), html=True), name="frontend")

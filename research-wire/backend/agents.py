@@ -2,17 +2,17 @@ from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from tools import web_search,scrape_url
+from .tools import web_search, scrape_url
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
 
-#model
+# model
 
-llm=ChatOpenAI(model_name="gpt-4o-mini",temperature=0)
+llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
 
-#First agent
+# First agent
 
 def build_search_agent():
     return create_agent(
@@ -20,7 +20,7 @@ def build_search_agent():
         tools=[web_search]
     )
 
-#second agent
+# second agent
 
 def build_reader_agent():
     return create_agent(
@@ -29,9 +29,9 @@ def build_reader_agent():
     )
 
 
-#Writer chain
+# Writer chain
 
-writer_prompt= ChatPromptTemplate.from_messages([
+writer_prompt = ChatPromptTemplate.from_messages([
     ("system", "You are an expert research writer. Write clear, structured and insightful reports."),
     ("human", """Write a detailed research report on the topic below.
 
@@ -50,13 +50,13 @@ Be detailed, factual and professional."""),
 ])
 
 
-writer_chain= writer_prompt | llm | StrOutputParser()
+writer_chain = writer_prompt | llm | StrOutputParser()
 
 
-#critic chain
+# critic chain
 
-critic_prompt=ChatPromptTemplate.from_messages([
-     ("system", "You are a sharp and constructive research critic. Be honest and specific."),
+critic_prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a sharp and constructive research critic. Be honest and specific."),
     ("human", """Review the research report below and evaluate it strictly.
 
 Report:
@@ -79,5 +79,4 @@ One line verdict:
 ])
 
 
-
-critic_chain= critic_prompt | llm | StrOutputParser()
+critic_chain = critic_prompt | llm | StrOutputParser()
