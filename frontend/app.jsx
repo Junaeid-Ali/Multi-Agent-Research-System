@@ -37,14 +37,32 @@ function renderTextWithLinks(text) {
 
 // Helper function to download report
 function downloadReport(report, topic) {
-  const filename = `research-report-${topic.replace(/\s+/g, "-").toLowerCase()}.txt`;
-  const element = document.createElement("a");
-  element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(report));
-  element.setAttribute("download", filename);
-  element.style.display = "none";
-  document.body.appendChild(element);
-  element.click();
-  document.body.removeChild(element);
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: "pt", format: "a4" });
+  const margin = 48;
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const lines = pdf.splitTextToSize(report, pageWidth - margin * 2);
+  let y = margin;
+
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(16);
+  pdf.text("Research Wire Report", margin, y);
+  y += 28;
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10);
+
+  lines.forEach((line) => {
+    if (y > pageHeight - margin) {
+      pdf.addPage();
+      y = margin;
+    }
+    pdf.text(line, margin, y);
+    y += 14;
+  });
+
+  const safeTopic = topic.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
+  pdf.save(`research-report-${safeTopic || "untitled"}.pdf`);
 }
 
 function StageStatusText({ status }) {
@@ -250,9 +268,15 @@ function App() {
           <h1>Research Wire</h1>
           <div className="sub">Search → Read → Draft → Critique, live over the wire.</div>
         </div>
-        <div className="conn-status">
-          <span className={`dot ${connLive === true ? "live" : connLive === false ? "down" : ""}`} />
-          {connLive === true ? "Connected" : connLive === false ? "Disconnected" : "Idle"}
+        <div
+          className={`conn-status ${connLive === true ? "live" : connLive === false ? "down" : "idle"}`}
+          role="status"
+          aria-live="polite"
+        >
+          <span className="dot" aria-hidden="true" />
+          <span className="conn-label">
+            {connLive === true ? "Live connection" : connLive === false ? "Connection issue" : "Ready"}
+          </span>
         </div>
       </header>
 

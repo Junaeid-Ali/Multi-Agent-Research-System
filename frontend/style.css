@@ -75,21 +75,29 @@ html, body {
 .conn-status {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  letter-spacing: 0.08em;
+  gap: 9px;
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(18, 27, 46, 0.72);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--paper-dim);
 }
 
 .dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--line);
 }
-.dot.live { background: var(--teal); box-shadow: 0 0 8px var(--teal); }
-.dot.down { background: var(--red); }
+.conn-status.live { border-color: rgba(45, 212, 191, 0.42); color: var(--teal); }
+.conn-status.live .dot { background: var(--teal); box-shadow: 0 0 8px var(--teal); }
+.conn-status.down { border-color: rgba(232, 98, 74, 0.45); color: var(--red); }
+.conn-status.down .dot { background: var(--red); box-shadow: 0 0 8px rgba(232, 98, 74, 0.55); }
+.conn-status.idle .dot { background: var(--amber); }
 
 /* ---------- Query bar ---------- */
 
