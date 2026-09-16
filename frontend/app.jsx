@@ -78,7 +78,7 @@ function downloadReport(report, topic) {
   const fileName = `research-report-${safeTopic || "untitled"}.pdf`;
 
   try {
-    const blob = pdf.output("blob");
+    const blob = new Blob([pdf.output("arraybuffer")], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -160,7 +160,7 @@ function ReportTab({ report, topic }) {
             e.target.style.transform = "scale(1)";
           }}
         >
-          ⬇ Download Report
+          ⬇ Download PDF
         </button>
       </div>
       <div className="report-view">{renderTextWithLinks(report)}</div>
