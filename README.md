@@ -1,79 +1,61 @@
 # Research Wire — Multi-Agent Research System
 
+## 🎯 Problem Statement
+Automate multi-agent research workflows with coordinated information gathering from multiple sources and deploy on serverless platforms.
+
+## 🛠️ Technologies & Models
+- **LLM Orchestration**: LangChain
+- **Backend**: FastAPI (REST + SSE + WebSocket)
+- **Frontend**: React
+- **Deployment**: Vercel
+- **Tools**: Web search & URL scraping agents
+
+---
+
 ## Structure
 
 ```
 research-wire/
 ├── api/
-│   └── index.py          # Vercel entrypoint — re-exports backend.main:app
+│   └── index.py          # Vercel entrypoint
 ├── backend/
-│   ├── __init__.py
-│   ├── main.py            # FastAPI app (REST + SSE + WebSocket)
-│   ├── agents.py           # LangChain agents / chains
-│   ├── tools.py             # web_search, scrape_url tools
-│   └── pipeline.py           # standalone CLI pipeline (optional, for local testing)
+│   ├── main.py           # FastAPI app
+│   ├── agents.py         # LangChain agents
+│   ├── tools.py          # web_search, scrape_url
+│   └── pipeline.py       # CLI pipeline
 ├── frontend/
 │   ├── index.html
-│   ├── app.jsx             # React (loaded via Babel Standalone, no build step)
+│   ├── app.jsx           # React
 │   └── style.css
 ├── vercel.json
-├── pyproject.toml
 ├── requirements.txt
-├── .env.example
-└── .gitignore
+└── .env.example
 ```
 
 ## What was fixed vs. the original project
 
-1. **`vercel.json` had no `rewrites`.** Vercel's router didn't know to send
-   `/`, `/api/*`, or `/ws/*` anywhere, so everything 404'd. Fixed: `/api/*`
-   and `/ws/*` route to the Python function; everything else is served as
-   a static file from `frontend/`.
-2. **`tools.py` `web_search`** had its `return` statement indented inside
-   the `for` loop, so it only ever returned 1 search result instead of 5.
-   Moved the `return` outside the loop.
-3. **Import paths were inconsistent.** `agents.py`, `tools.py`, and
-   `pipeline.py` used to live at the project root while `backend/main.py`
-   imported them with bare `from agents import ...` — that only resolved
-   if you happened to run the process with `backend/` as the working
-   directory. They've been moved into `backend/` as a proper package
-   (`backend/__init__.py` added) with relative imports (`from .agents
-   import ...`), so `backend.main:app` resolves identically whether it's
-   imported from `api/index.py` on Vercel or run locally.
-4. **`.env` was not included** — a `.env.example` template is provided
-   instead. Never commit real API keys; set them in Vercel's dashboard for
-   deployment.
+1. **`vercel.json` routing** - Added rewrites for `/api/*` and `/ws/*`
+2. **`tools.py` web_search** - Moved return statement outside loop (now returns 5 results)
+3. **Import paths** - Moved to proper package structure with relative imports
+4. **`.env` file** - Added `.env.example` template instead
 
-## Known platform limitation
+## Known limitation
 
-**`/ws/research` (WebSocket) does not work on Vercel.** Vercel serverless
-functions are request/response only — no persistent connections. The
-frontend already uses `/api/research/stream` (Server-Sent Events) instead,
-which works within Vercel's streaming response support. The WebSocket
-route is left in `backend/main.py` for local development or if you deploy
-the backend elsewhere (Render, Railway, a VM, etc.) where persistent
-connections are supported.
+**WebSocket doesn't work on Vercel** - Uses Server-Sent Events (SSE) instead for streaming.
 
 ## Local development
 
 ```bash
-# from the project root
 python -m venv .venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env       # fill in OPENAI_API_KEY and TAVILY_API_KEY
-
+cp .env.example .env
 uvicorn backend.main:app --reload --port 8000
 ```
 
-Then open http://localhost:8000 — `backend/main.py` mounts `frontend/` as
-static files for local single-process runs.
-
 ## Deploying to Vercel
 
-1. Push this folder to a GitHub repo.
-2. Import the repo in Vercel.
-3. Set `OPENAI_API_KEY` and `TAVILY_API_KEY` as Environment Variables in
-   Vercel project settings (do not commit `.env`).
-4. Deploy. `vercel.json` handles routing `/api/*` to the Python function
-   and everything else to the static frontend.
+1. Push to GitHub
+2. Import repo in Vercel
+3. Set env vars: `OPENAI_API_KEY`, `TAVILY_API_KEY`
+4. Deploy
