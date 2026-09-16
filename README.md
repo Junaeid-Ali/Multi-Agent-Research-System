@@ -1,5 +1,6 @@
-# Research Wire — Multi-Agent Research System
+# Research Wire
 
+<<<<<<< HEAD
 ## 🎯 Problem Statement
 Automate multi-agent research workflows with coordinated information gathering from multiple sources and deploy on serverless platforms.
 
@@ -19,43 +20,47 @@ research-wire/
 ├── api/
 │   └── index.py          # Vercel entrypoint
 ├── backend/
-│   ├── main.py           # FastAPI app
-│   ├── agents.py         # LangChain agents
-│   ├── tools.py          # web_search, scrape_url
-│   └── pipeline.py       # CLI pipeline
-├── frontend/
-│   ├── index.html
-│   ├── app.jsx           # React
-│   └── style.css
-├── vercel.json
-├── requirements.txt
-└── .env.example
-```
+# Research Wire
 
-## What was fixed vs. the original project
+## 1. Problem Solved
 
-1. **`vercel.json` routing** - Added rewrites for `/api/*` and `/ws/*`
-2. **`tools.py` web_search** - Moved return statement outside loop (now returns 5 results)
-3. **Import paths** - Moved to proper package structure with relative imports
-4. **`.env` file** - Added `.env.example` template instead
+Research often requires switching between search, reading, writing, and
+reviewing. Research Wire automates this workflow with multiple AI agents and
+shows progress as the report is created.
 
-## Known limitation
+## 2. Frameworks and Important Details
 
-**WebSocket doesn't work on Vercel** - Uses Server-Sent Events (SSE) instead for streaming.
+- **FastAPI + Uvicorn:** Python backend with REST and Server-Sent Events (SSE)
+  for live progress updates.
+- **LangChain + OpenAI:** Coordinates the search, reader, writer, and critic
+  agents using `gpt-4o-mini`.
+- **Tavily:** Provides web search results for the research agent.
+- **React + Babel Standalone:** Lightweight frontend with no build step.
+- **Requests + BeautifulSoup:** Extracts readable content from selected URLs.
+- **Vercel:** Optional deployment for the frontend and API function.
 
-## Local development
+## 3. How It Helps
+
+It reduces manual research time, keeps the workflow organized, combines web
+sources into a structured report, and provides critic feedback before the
+result is used.
+
+## 4. Setup
+
+From the project root:
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate
+.venv\Scripts\activate       # Windows
 pip install -r requirements.txt
-cp .env.example .env
+copy .env.example .env
+```
+
+Add `OPENAI_API_KEY` and `TAVILY_API_KEY` to `.env`, then run:
+
+```bash
 uvicorn backend.main:app --reload --port 8000
 ```
 
-## Deploying to Vercel
-
-1. Push to GitHub
-2. Import repo in Vercel
-3. Set env vars: `OPENAI_API_KEY`, `TAVILY_API_KEY`
-4. Deploy
+Open http://localhost:8000 in a browser.
+It reduces manual research time, keeps the workflow organized, combines web

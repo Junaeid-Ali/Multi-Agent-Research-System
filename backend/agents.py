@@ -5,7 +5,7 @@ from langchain_core.output_parsers import StrOutputParser
 from .tools import web_search, scrape_url
 import os
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 
 
 # model
