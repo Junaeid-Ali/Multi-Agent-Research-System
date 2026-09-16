@@ -1,66 +1,50 @@
 # Research Wire
 
-<<<<<<< HEAD
-## 🎯 Problem Statement
-Automate multi-agent research workflows with coordinated information gathering from multiple sources and deploy on serverless platforms.
+## Problem Solved
 
-## 🛠️ Technologies & Models
-- **LLM Orchestration**: LangChain
-- **Backend**: FastAPI (REST + SSE + WebSocket)
-- **Frontend**: React
-- **Deployment**: Vercel
-- **Tools**: Web search & URL scraping agents
+Research Wire automates the research process using AI agents for web search,
+source reading, report writing, and quality review.
 
----
+## Frameworks Used
 
-## Structure
+- **FastAPI + Uvicorn:** Backend API and streaming responses.
+- **LangChain + OpenAI:** Coordinates the research agents using `gpt-4o-mini`.
+- **Tavily:** Searches the web for relevant sources.
+- **React + Babel Standalone:** Frontend without a build process.
+- **Requests + BeautifulSoup:** Extracts content from web pages.
+- **Render + Vercel:** Render hosts the backend; Vercel hosts the frontend.
 
-```
-research-wire/
-├── api/
-│   └── index.py          # Vercel entrypoint
-├── backend/
-# Research Wire
+## How It Helps
 
-## 1. Problem Solved
+It saves research time, organizes information from multiple sources, creates
+structured reports, and provides critic feedback.
 
-Research often requires switching between search, reading, writing, and
-reviewing. Research Wire automates this workflow with multiple AI agents and
-shows progress as the report is created.
-
-## 2. Frameworks and Important Details
-
-- **FastAPI + Uvicorn:** Python backend with REST and Server-Sent Events (SSE)
-  for live progress updates.
-- **LangChain + OpenAI:** Coordinates the search, reader, writer, and critic
-  agents using `gpt-4o-mini`.
-- **Tavily:** Provides web search results for the research agent.
-- **React + Babel Standalone:** Lightweight frontend with no build step.
-- **Requests + BeautifulSoup:** Extracts readable content from selected URLs.
-- **Vercel:** Optional deployment for the frontend and API function.
-
-## 3. How It Helps
-
-It reduces manual research time, keeps the workflow organized, combines web
-sources into a structured report, and provides critic feedback before the
-result is used.
-
-## 4. Setup
-
-From the project root:
+## Setup
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate       # Windows
+.venv\Scripts\activate
 pip install -r requirements.txt
 copy .env.example .env
 ```
 
-Add `OPENAI_API_KEY` and `TAVILY_API_KEY` to `.env`, then run:
+Add these keys to `.env`:
+
+```env
+OPENAI_API_KEY=your_openai_api_key
+TAVILY_API_KEY=your_tavily_api_key
+```
+
+Run locally:
 
 ```bash
 uvicorn backend.main:app --reload --port 8000
 ```
 
-Open http://localhost:8000 in a browser.
-It reduces manual research time, keeps the workflow organized, combines web
+Open `http://localhost:8000`.
+
+The deployed frontend uses the Render backend:
+
+```text
+https://multi-agent-research-system-1-mrbt.onrender.com
+```
