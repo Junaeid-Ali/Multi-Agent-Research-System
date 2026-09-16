@@ -1,10 +1,11 @@
 const { useState, useRef, useCallback } = React;
 
-// Streaming endpoint. On Vercel this is a single-origin path (same host as
-// the page, no scheme/host juggling needed like the old WebSocket setup).
-// The frontend is hosted on Vercel while the research API runs on Render.
+// Use the same-origin local API during development. For deployed frontend
+// hosting, fall back to the remote Render backend endpoint.
 const STREAM_ENDPOINT =
-  "https://multi-agent-research-system-1-mrbt.onrender.com/api/research/stream";
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "/api/research/stream"
+    : "https://multi-agent-research-system-1-mrbt.onrender.com/api/research/stream";
 
 const STAGES = [
   { key: "search", label: "Search Agent", role: "Scans the web for sources" },
@@ -37,7 +38,14 @@ function renderTextWithLinks(text) {
 
 // Helper function to download report
 function downloadReport(report, topic) {
-  const { jsPDF } = window.jspdf;
+  if (!report) return;
+
+  const { jsPDF } = window.jspdf || {};
+  if (!jsPDF) {
+    console.error("jsPDF library is not available.");
+    return;
+  }
+
   const pdf = new jsPDF({ unit: "pt", format: "a4" });
   const margin = 48;
   const pageWidth = pdf.internal.pageSize.getWidth();
@@ -61,8 +69,30 @@ function downloadReport(report, topic) {
     y += 14;
   });
 
-  const safeTopic = topic.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
-  pdf.save(`research-report-${safeTopic || "untitled"}.pdf`);
+  const safeTopic = String(topic || "untitled")
+    .trim()
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
+
+  const fileName = `research-report-${safeTopic || "untitled"}.pdf`;
+
+  try {
+    const blob = pdf.output("blob");
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) {
+    console.warn("Blob-based PDF download failed. Falling back to direct save.", error);
+    pdf.save(fileName);
+  }
 }
 
 function StageStatusText({ status }) {
