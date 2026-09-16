@@ -214,7 +214,7 @@ function App() {
         });
         setRunning(false);
         es.close();
-        setConnLive(false);
+        setConnLive(null);
       } else if (msg.type === "error") {
         setError(msg.message || "The pipeline hit an error.");
         setRunning(false);
