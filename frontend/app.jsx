@@ -2,9 +2,9 @@ const { useState, useRef, useCallback } = React;
 
 // Streaming endpoint. On Vercel this is a single-origin path (same host as
 // the page, no scheme/host juggling needed like the old WebSocket setup).
-// If you split frontend/backend across hosts, make this absolute instead,
-// e.g. "https://your-backend.example.com/api/research/stream".
-const STREAM_ENDPOINT = "/api/research/stream";
+// The frontend is hosted on Vercel while the research API runs on Render.
+const STREAM_ENDPOINT =
+  "https://multi-agent-research-system-1-mrbt.onrender.com/api/research/stream";
 
 const STAGES = [
   { key: "search", label: "Search Agent", role: "Scans the web for sources" },
