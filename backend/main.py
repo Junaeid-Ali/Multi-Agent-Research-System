@@ -31,7 +31,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -300,4 +300,11 @@ async def research_ws(websocket: WebSocket):
 # ---------------------------------------------------------------------------
 _frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
 if _frontend_dir.exists():
+    _index_html = (_frontend_dir / "index.html").read_text(encoding="utf-8")
+
+    @app.get("/", response_class=HTMLResponse)
+    @app.get("/index.html", response_class=HTMLResponse)
+    async def frontend_index():
+        return HTMLResponse(content=_index_html)
+
     app.mount("/", StaticFiles(directory=str(_frontend_dir), html=True), name="frontend")
